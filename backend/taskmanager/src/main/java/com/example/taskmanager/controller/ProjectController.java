@@ -3,6 +3,7 @@ package com.example.taskmanager.controller;
 import com.example.taskmanager.dto.ProjectRequest;
 import com.example.taskmanager.dto.ProjectResponse;
 import com.example.taskmanager.service.ProjectService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,7 @@ public class ProjectController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ProjectResponse create(@RequestBody ProjectRequest req) {
+    public ProjectResponse create(@Valid @RequestBody ProjectRequest req) {
         return projectService.create(req);
     }
 
@@ -28,7 +29,7 @@ public class ProjectController {
 
     @PutMapping("/{id}")
     public ProjectResponse update(@PathVariable Long id,
-                                  @RequestBody ProjectRequest req) {
+                                  @Valid @RequestBody ProjectRequest req) {
         return projectService.update(id, req);
     }
 

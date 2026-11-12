@@ -6,6 +6,7 @@ import com.example.taskmanager.dto.TaskResponse;
 import com.example.taskmanager.model.Priority;
 import com.example.taskmanager.model.TaskStatus;
 import com.example.taskmanager.service.TaskService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class TaskController {
     @ResponseStatus(HttpStatus.CREATED)
     public TaskResponse create(
             @PathVariable Long projectId,
-            @RequestBody TaskRequest req) {
+            @Valid @RequestBody TaskRequest req) {
 
         return taskService.create(projectId, req);
     }

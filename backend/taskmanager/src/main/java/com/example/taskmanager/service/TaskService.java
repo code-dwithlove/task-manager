@@ -3,8 +3,10 @@ package com.example.taskmanager.service;
 import com.example.taskmanager.dto.TaskRequest;
 import com.example.taskmanager.dto.TaskResponse;
 import com.example.taskmanager.exception.ResourceNotFoundException;
-import com.example.taskmanager.model.*;
-
+import com.example.taskmanager.model.Priority;
+import com.example.taskmanager.model.Project;
+import com.example.taskmanager.model.Task;
+import com.example.taskmanager.model.TaskStatus;
 import com.example.taskmanager.repository.ProjectRepository;
 import com.example.taskmanager.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +17,15 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class TaskService {
-    private final ProjectRepository projectRepository;
-    private final TaskRepository taskRepository;
 
+    private final TaskRepository taskRepository;
+    private final ProjectRepository projectRepository;
+    private final CurrentUserService currentUser;
+
+    // Create a task inside one of MY projects
     public TaskResponse create(Long projectId, TaskRequest req) {
-        Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        Project project = findMyProject(projectId);
+
         Task task = new Task();
         task.setTitle(req.title());
         task.setDescription(req.description());
@@ -28,28 +33,60 @@ public class TaskService {
         if (req.priority() != null) task.setPriority(req.priority());
         task.setDueDate(req.dueDate());
         task.setProject(project);
+
         return toResponse(taskRepository.save(task));
     }
 
-    public List<TaskResponse> getByProject(Long projectId, TaskStatus status, Priority priority){
+    // List the tasks of one of MY projects, with optional filters
+    public List<TaskResponse> getByProject(Long projectId,
+                                           TaskStatus status, Priority priority) {
+        findMyProject(projectId);   // throws 404 if the project is not mine
+
         return taskRepository.findByProjectId(projectId).stream()
                 .filter(t -> status == null || t.getStatus() == status)
                 .filter(t -> priority == null || t.getPriority() == priority)
-                .map(this::toResponse).toList();
+                .map(this::toResponse)
+                .toList();
     }
 
+    // Edit a task
+    public TaskResponse update(Long taskId, TaskRequest req) {
+        Task task = findOrThrow(taskId);
+
+        task.setTitle(req.title());
+        task.setDescription(req.description());
+        if (req.status() != null) task.setStatus(req.status());
+        if (req.priority() != null) task.setPriority(req.priority());
+        task.setDueDate(req.dueDate());
+
+        return toResponse(taskRepository.save(task));
+    }
+
+    // Change only the status
     public TaskResponse updateStatus(Long taskId, TaskStatus newStatus) {
         Task task = findOrThrow(taskId);
         task.setStatus(newStatus);
         return toResponse(taskRepository.save(task));
     }
 
-    public void delete(Long id){
-        taskRepository.delete(findOrThrow(id));
+    // Delete a task
+    public void delete(Long taskId) {
+        taskRepository.delete(findOrThrow(taskId));
     }
 
-    private Task findOrThrow(Long id) {
-        return taskRepository.findById(id)
+    // ---------- helpers ----------
+
+    // A project, but only if it belongs to the logged-in user
+    private Project findMyProject(Long projectId) {
+        return projectRepository
+                .findByIdAndOwnerId(projectId, currentUser.get().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+    }
+
+    // A task, but only if its project belongs to the logged-in user
+    private Task findOrThrow(Long taskId) {
+        return taskRepository
+                .findByIdAndProjectOwnerId(taskId, currentUser.get().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
     }
 
@@ -61,7 +98,6 @@ public class TaskService {
                 t.getStatus(),
                 t.getPriority(),
                 t.getDueDate(),
-                t.getProject().getId()
-        );
+                t.getProject().getId());
     }
 }

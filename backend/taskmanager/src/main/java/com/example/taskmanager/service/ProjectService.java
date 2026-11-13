@@ -16,11 +16,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProjectService {
     private final ProjectRepository projectRepository;
-    private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
 
     public ProjectResponse create(ProjectRequest req){
-        User owner = userRepository.findById(1L)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User owner = currentUserService.get();
         Project project = new Project();
         project.setName(req.name());
         project.setDescription(req.description());
@@ -29,7 +28,7 @@ public class ProjectService {
     }
 
     public List<ProjectResponse> getAll(){
-        return projectRepository.findByOwnerId(1L).stream()
+        return projectRepository.findByOwnerId(currentUserService.get().getId()).stream()
                 .map(this::toResponse).toList();
     }
 
@@ -45,7 +44,7 @@ public class ProjectService {
     }
 
     private Project findOrThrow(Long id) {
-        return projectRepository.findById(id)
+        return projectRepository.findByIdAndOwnerId(id, currentUserService.get().getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
     }
 

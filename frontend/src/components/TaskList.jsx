@@ -1,6 +1,6 @@
 const STATUSES = ["TODO", "IN_PROGRESS", "REVIEW", "COMPLETED"];
 
-function TaskList({ tasks, onEdit, onDelete, onStatusChange }) {
+function TaskList({ tasks, onEdit, onDelete, onStatusChange, onOpenComments }) {
     if (tasks.length === 0) {
         return (
             <section className="task-list">
@@ -37,6 +37,9 @@ function TaskList({ tasks, onEdit, onDelete, onStatusChange }) {
                             <button className="edit-btn" onClick={() => onEdit(task)}>Edit</button>
                             <button className="delete-btn" onClick={() => onDelete(task.id)}>
                                 Delete
+                            </button>
+                            <button className="secondary-btn" onClick={() => onOpenComments(task.id)}>
+                                Comments
                             </button>
                         </div>
                     </div>

@@ -5,13 +5,14 @@ import {
 } from "../api/taskApi";
 import TaskForm from "../components/TaskForm";
 import TaskList from "../components/TaskList";
+import Comments from "../components/Comments";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "REVIEW", "COMPLETED"];
 
 function errorMessage(err) {
     const data = err.response?.data;
     return data && typeof data === "object"
-        ? Object.values(data).join(", ")      // validation and error messages
+        ? Object.values(data).join(", ")
         : "Cannot reach the server.";
 }
 
@@ -20,6 +21,7 @@ function ProjectDetail() {
     const [tasks, setTasks] = useState([]);
     const [filter, setFilter] = useState("");
     const [editingTask, setEditingTask] = useState(null);
+    const [openTaskId, setOpenTaskId] = useState(null);   // which task's comments are shown
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
 
@@ -48,7 +50,7 @@ function ProjectDetail() {
                 await createTask(id, task);
             }
             await load();
-            return true;                      // tells TaskForm it can clear itself
+            return true;
         } catch (err) {
             setError(errorMessage(err));
             return false;
@@ -69,6 +71,7 @@ function ProjectDetail() {
         try {
             await deleteTask(taskId);
             if (editingTask?.id === taskId) setEditingTask(null);
+            if (openTaskId === taskId) setOpenTaskId(null);
             await load();
         } catch (err) {
             setError(errorMessage(err));
@@ -102,7 +105,19 @@ function ProjectDetail() {
                 <p>Loading tasks...</p>
             ) : (
                 <TaskList tasks={tasks} onEdit={setEditingTask}
-                          onDelete={handleDelete} onStatusChange={handleStatusChange} />
+                          onDelete={handleDelete} onStatusChange={handleStatusChange}
+                          onOpenComments={setOpenTaskId} />
+            )}
+
+            {openTaskId && (
+                <section className="task-form">
+                    <Comments taskId={openTaskId} />
+                    <div className="form-actions">
+                        <button className="secondary-btn" onClick={() => setOpenTaskId(null)}>
+                            Close comments
+                        </button>
+                    </div>
+                </section>
             )}
         </div>
     );

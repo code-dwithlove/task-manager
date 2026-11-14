@@ -5,5 +5,14 @@ import com.example.taskmanager.model.TaskStatus;
 
 import java.time.LocalDate;
 
-public record TaskResponse(Long id, String title, String description, TaskStatus status, Priority priority, LocalDate dueDate, Long projectId) {
-}
+public record TaskResponse(
+        Long id,
+        String title,
+        String description,
+        TaskStatus status,
+        Priority priority,
+        LocalDate dueDate,
+        Long projectId,
+        Long assigneeId,
+        String assigneeName
+) {}

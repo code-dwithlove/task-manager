@@ -51,4 +51,9 @@ public class TaskController {
     public void delete(@PathVariable Long id) {
         taskService.delete(id);
     }
+
+    @PatchMapping("/tasks/{id}/assignee")
+    public TaskResponse assign(@PathVariable Long id, @RequestParam(required = false) Long userId){
+        return taskService.assign(id, userId);
+    }
 }

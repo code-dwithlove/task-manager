@@ -45,4 +45,10 @@ public class GlobalExceptionHandler {
     public Map<String, String> badArgument(IllegalArgumentException ex){
         return Map.of("error", ex.getMessage());
     }
+
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, String> forbidden(ForbiddenException ex){
+        return Map.of("error", ex.getMessage());
+    }
 }

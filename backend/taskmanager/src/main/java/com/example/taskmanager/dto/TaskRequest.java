@@ -16,4 +16,6 @@ public record TaskRequest(
         TaskStatus status,
         Priority priority,
         @FutureOrPresent(message = "Due date cannot be in the past")
-        LocalDate dueDate) {}
+        LocalDate dueDate,
+        Long assigneeId
+) {}

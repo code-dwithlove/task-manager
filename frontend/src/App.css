@@ -34,3 +34,13 @@ button:disabled { opacity: .6; cursor: not-allowed; }
 
 .alert { padding: 12px; margin-bottom: 16px; border-radius: 6px; }
 .alert.error { background: #fee2e2; color: #991b1b; }
+
+.view-switch { display: flex; gap: 10px; margin-bottom: 16px; }
+.view-switch .active { background: #0f5c30; }
+
+.kanban-board { display: flex; gap: 16px; align-items: flex-start; overflow-x: auto; }
+.kanban-column { flex: 1; min-width: 220px; padding: 12px; border-radius: 8px; min-height: 300px; }
+.kanban-column h3 { margin-top: 0; font-size: 15px; }
+.kanban-card { background: white; padding: 10px; margin-bottom: 8px; border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.15); cursor: grab; touch-action: none; }
+.kanban-meta { margin: 6px 0; }

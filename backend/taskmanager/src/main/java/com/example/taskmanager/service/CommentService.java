@@ -43,7 +43,7 @@ public class CommentService {
     }
 
     private Task findTask(Long taskId) {
-        return taskRepository.findByIdAndProjectOwnerId(taskId, currentUserService.get().getId()).orElseThrow(() -> new ResourceNotFoundException("Task Not Found"));
+        return taskRepository.findAccessible(taskId, currentUserService.get().getId()).orElseThrow(() -> new ResourceNotFoundException("Task Not Found"));
     }
 
     private CommentResponse toResponse(Comment c){

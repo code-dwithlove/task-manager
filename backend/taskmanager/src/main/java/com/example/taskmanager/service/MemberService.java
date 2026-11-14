@@ -23,6 +23,7 @@ public class MemberService {
     private final UserRepository userRepository;
     private final ProjectAccessService accessService;
     private final ActivityService activityService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public List<MemberResponse> list(Long projectId){
@@ -45,6 +46,8 @@ public class MemberService {
 
         MemberResponse response = toResponse(memberRepository.save(m));
         activityService.log(project, "added " +user.getName() + " to the project");
+        notificationService.notifyUser(user,
+                "You were added to \"" + project.getName() + "\"", project.getId());
         return response;
     }
 

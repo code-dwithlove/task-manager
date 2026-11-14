@@ -21,6 +21,7 @@ public class CommentService {
     private final TaskRepository taskRepository;
     private final CurrentUserService currentUserService;
     private final ActivityService activityService;
+    private final NotificationService notificationService;
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<CommentResponse> getForTask(Long taskId){
@@ -39,6 +40,9 @@ public class CommentService {
         Comment saved = commentRepository.save(comment);
 
         activityService.log(task.getProject(), "commented on \"" + task.getTitle() + "\"");
+        notificationService.notifyUser(task.getAssignee(),
+                currentUserService.get().getName() + " commented on \"" + task.getTitle() + "\"",
+                task.getProject().getId());
         return toResponse(saved);
     }
 

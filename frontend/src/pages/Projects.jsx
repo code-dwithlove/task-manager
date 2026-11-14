@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { createProject, deleteProject, getProjects } from "../api/projectApi";
+import NotificationBell from "../components/NotificationBell.jsx";
 
 function Projects() {
     const [projects, setProjects] = useState([]);
@@ -33,6 +34,7 @@ function Projects() {
 
     return (
         <div className="container">
+            <div className="topbar"><NotificationBell /></div>
             <header><h1>My projects</h1></header>
             {error && <div className="alert error">{error}</div>}
 

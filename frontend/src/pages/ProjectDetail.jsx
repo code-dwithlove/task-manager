@@ -9,6 +9,7 @@ import TaskList from "../components/TaskList";
 import KanbanBoard from "../components/KanbanBoard";
 import Members from "../components/Members";
 import Comments from "../components/Comments";
+import ActivityFeed from "../components/ActivityFeed.jsx";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "REVIEW", "COMPLETED"];
 
@@ -31,6 +32,7 @@ function ProjectDetail() {
     const [openTaskId, setOpenTaskId] = useState(null);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const isOwner = members.some((m) => m.email === myEmail && m.role === "OWNER");
 
@@ -41,6 +43,7 @@ function ProjectDetail() {
             const res = await getTasks(id, view === "list" ? filter : "");
             setTasks(res.data);
             setError("");
+            setRefreshKey((k) => k + 1);
         } catch (err) {
             setError(errorMessage(err));
         } finally {
@@ -52,6 +55,7 @@ function ProjectDetail() {
         try {
             const res = await getMembers(id);
             setMembers(res.data);
+            setRefreshKey((k) => k + 1);
         } catch (err) {
             setError(errorMessage(err));
         }
@@ -96,6 +100,7 @@ function ProjectDetail() {
             prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)));
         try {
             await updateTaskStatus(taskId, newStatus);
+            setRefreshKey((k) => k + 1);
         } catch (err) {
             setTasks((prev) =>
                 prev.map((t) => (t.id === taskId ? { ...t, status: oldStatus } : t)));
@@ -194,7 +199,7 @@ function ProjectDetail() {
 
             {view === "list" && openTaskId && (
                 <section className="task-form">
-                    <Comments taskId={openTaskId} />
+                    <Comments taskId={openTaskId} onChanged={() => setRefreshKey((k) => k + 1)} />
                     <div className="form-actions">
                         <button className="secondary-btn" onClick={() => setOpenTaskId(null)}>
                             Close comments
@@ -202,6 +207,8 @@ function ProjectDetail() {
                     </div>
                 </section>
             )}
+
+            <ActivityFeed projectId={id} refreshKey={refreshKey} />
         </div>
     );
 }

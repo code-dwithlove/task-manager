@@ -22,6 +22,7 @@ public class TaskService {
     private final ProjectRepository projectRepository;
     private final CurrentUserService currentUser;
     private final ProjectMemberRepository memberRepository;
+    private final ActivityService activityService;
 
     // Create a task inside one of MY projects
     public TaskResponse create(Long projectId, TaskRequest req) {
@@ -34,11 +35,14 @@ public class TaskService {
         if (req.priority() != null) task.setPriority(req.priority());
         task.setDueDate(req.dueDate());
         task.setProject(project);
+        task.setAssignee(resolveAssignee(projectId, req.assigneeId()));
 
-        return toResponse(taskRepository.save(task));
+        Task saved = taskRepository.save(task);
+        activityService.log(project, "created task \""+ saved.getTitle() + "\"");
+        return toResponse(saved);
     }
 
-    // List the tasks of one of MY projects, with optional filters
+    @Transactional(readOnly = true)
     public List<TaskResponse> getByProject(Long projectId,
                                            TaskStatus status, Priority priority) {
         findMyProject(projectId);   // throws 404 if the project is not mine
@@ -59,20 +63,45 @@ public class TaskService {
         if (req.status() != null) task.setStatus(req.status());
         if (req.priority() != null) task.setPriority(req.priority());
         task.setDueDate(req.dueDate());
+        if(req.assigneeId() != null){
+            task.setAssignee(resolveAssignee(task.getProject().getId(), req.assigneeId()));
+        }
 
-        return toResponse(taskRepository.save(task));
+        Task saved = taskRepository.save(task);
+        activityService.log(saved.getProject(), "updated task \"" + saved.getTitle() + "\"");
+        return toResponse(saved);
     }
 
     // Change only the status
     public TaskResponse updateStatus(Long taskId, TaskStatus newStatus) {
         Task task = findOrThrow(taskId);
+        TaskStatus oldStatus = task.getStatus();
+        if (oldStatus == newStatus) return toResponse(task);
+
         task.setStatus(newStatus);
-        return toResponse(taskRepository.save(task));
+        Task saved = taskRepository.save(task);
+        activityService.log(saved.getProject(), "moved \"" + saved.getTitle() + "\" from " + label(oldStatus) + " to " + label(newStatus));
+        return toResponse(saved);
+    }
+
+    public TaskResponse assign(Long taskId, Long userId) {
+        Task task = findOrThrow(taskId);
+        User assignee = resolveAssignee(task.getProject().getId(), userId);
+        task.setAssignee(assignee);
+
+        Task saved = taskRepository.save(task);
+        String text = assignee == null
+                ? "unassigned \"" + saved.getTitle() + "\""
+                : "assigned \"" + saved.getTitle() + "\" to " + assignee.getName();
+        activityService.log(saved.getProject(), text);
+        return toResponse(saved);
     }
 
     // Delete a task
     public void delete(Long taskId) {
-        taskRepository.delete(findOrThrow(taskId));
+        Task task = findOrThrow(taskId);
+        activityService.log(task.getProject(), "deleted task \"" + task.getTitle() + "\"");
+        taskRepository.delete(task);
     }
 
     // ---------- helpers ----------
@@ -113,9 +142,7 @@ public class TaskService {
                 .getUser();
     }
 
-    public TaskResponse assign(Long taskId, Long userId){
-        Task task = findOrThrow(taskId);
-        task.setAssignee(resolveAssignee(task.getProject().getId(), userId));
-        return toResponse(taskRepository.save(task));
+    private String label(TaskStatus status) {
+        return status.name().replace('_', ' ');
     }
 }

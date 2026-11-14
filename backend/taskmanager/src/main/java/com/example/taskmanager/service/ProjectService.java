@@ -24,8 +24,9 @@ public class ProjectService {
     private final CurrentUserService currentUserService;
     private final ProjectMemberRepository memberRepository;
     private final ProjectAccessService accessService;
+    public final ActivityService activityService;
 
-    public ProjectResponse create(ProjectRequest req){
+    public ProjectResponse create(ProjectRequest req) {
         User me = currentUserService.get();
 
         Project project = new Project();
@@ -40,6 +41,7 @@ public class ProjectService {
         member.setRole(ProjectRole.OWNER);
         memberRepository.save(member);
 
+        activityService.log(saved, "created the project");
         return toResponse(saved);
     }
 

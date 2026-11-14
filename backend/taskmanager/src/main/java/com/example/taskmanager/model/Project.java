@@ -35,4 +35,7 @@ public class Project {
 
     @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE)
     private List<ProjectMember> members = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE)
+    private List<Activity> activities = new ArrayList<>();
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 
-export default function Comments({ taskId }) {
+export default function Comments({ taskId, onChanged  }) {
     const [comments, setComments] = useState([]);
     const [text, setText] = useState("");
     const myEmail = localStorage.getItem("email");
@@ -18,6 +18,7 @@ export default function Comments({ taskId }) {
         await api.post(`/tasks/${taskId}/comments`, { text });
         setText("");
         load();
+        if(onChanged) onChanged;
     }
 
     async function handleDelete(id) {

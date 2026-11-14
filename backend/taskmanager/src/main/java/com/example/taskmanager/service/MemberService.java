@@ -22,6 +22,7 @@ public class MemberService {
     private final ProjectMemberRepository memberRepository;
     private final UserRepository userRepository;
     private final ProjectAccessService accessService;
+    private final ActivityService activityService;
 
     @Transactional(readOnly = true)
     public List<MemberResponse> list(Long projectId){
@@ -41,18 +42,26 @@ public class MemberService {
         m.setProject(project);
         m.setUser(user);
         m.setRole(ProjectRole.MEMBER);
-        return toResponse(memberRepository.save(m));
+
+        MemberResponse response = toResponse(memberRepository.save(m));
+        activityService.log(project, "added " +user.getName() + " to the project");
+        return response;
     }
 
     public void remove(Long projectId, Long userId){
-        accessService.getAccessible(projectId);
+        Project project = accessService.getAccessible(projectId);
         accessService.requireOwner(projectId);
-        ProjectMember m = memberRepository.findByProjectIdAndUserId(projectId, userId)
+
+        ProjectMember member = memberRepository
+                .findByProjectIdAndUserId(projectId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
-        if(m.getRole() == ProjectRole.OWNER){
+
+        if (member.getRole() == ProjectRole.OWNER) {
             throw new IllegalArgumentException("The owner cannot be removed");
         }
-        memberRepository.delete(m);
+        String name = member.getUser().getName();
+        memberRepository.delete(member);
+        activityService.log(project, "removed " + name + " from the project");
     }
 
     private MemberResponse toResponse(ProjectMember m) {

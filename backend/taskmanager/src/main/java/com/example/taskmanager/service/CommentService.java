@@ -20,6 +20,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final TaskRepository taskRepository;
     private final CurrentUserService currentUserService;
+    private final ActivityService activityService;
 
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<CommentResponse> getForTask(Long taskId){
@@ -29,11 +30,16 @@ public class CommentService {
     }
 
     public CommentResponse add(Long taskId, CommentRequest req){
+        Task task = findTask(taskId);
+
         Comment comment = new Comment();
         comment.setText(req.text());
-        comment.setTask(findTask(taskId));
+        comment.setTask(task);
         comment.setAuthor(currentUserService.get());
-        return toResponse(commentRepository.save(comment));
+        Comment saved = commentRepository.save(comment);
+
+        activityService.log(task.getProject(), "commented on \"" + task.getTitle() + "\"");
+        return toResponse(saved);
     }
 
     public void delete(Long commentId){

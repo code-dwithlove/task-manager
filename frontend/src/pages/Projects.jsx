@@ -7,6 +7,7 @@ import {
     getProjects,
 } from "../api/projectApi";
 import NotificationBell from "../components/NotificationBell.jsx";
+import AccountMenu from "../components/AccountMenu.jsx";
 import "../css/Projects.css";
 
 function Projects() {
@@ -53,6 +54,7 @@ function Projects() {
 
                 <div className="projects-header-actions">
                     <NotificationBell />
+                    <AccountMenu />
                 </div>
 
             </header>

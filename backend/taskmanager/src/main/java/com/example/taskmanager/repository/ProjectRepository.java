@@ -14,4 +14,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     @Query("select m.project from ProjectMember m " + "where m.project.id = :id and m.user.id = :userId")
     Optional<Project> findAccessible(@Param("id") Long id, @Param("userId") Long userId);
+
+    List<Project> findByOwnerId(Long ownerId);
 }

@@ -1,12 +1,17 @@
 package com.example.taskmanager.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,5 +55,10 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Map<String, String> forbidden(ForbiddenException ex){
         return Map.of("error", ex.getMessage());
+    }
+
+    @ExceptionHandler(AiException.class)
+    public ResponseEntity<Map<String, Object>> ai(AiException e){
+        return ResponseEntity.status(503).body(Map.of("status", 503, "message", e.getMessage()));
     }
 }

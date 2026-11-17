@@ -1,4 +1,6 @@
+
 import { DndContext, useDraggable, useDroppable } from "@dnd-kit/core";
+import "../css/KanbanBoard.css";
 
 const STATUSES = ["TODO", "IN_PROGRESS", "REVIEW", "COMPLETED"];
 
@@ -10,18 +12,40 @@ function TaskCard({ task }) {
         transform: transform
             ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
             : undefined,
-        opacity: isDragging ? 0.7 : 1,
+        opacity: isDragging ? 0.5 : 1,
+        zIndex: isDragging ? 10 : 1,
     };
 
     return (
-        <div ref={setNodeRef} style={style} {...listeners} {...attributes}
-             className="kanban-card">
-            <strong>{task.title}</strong>
-            <div className="kanban-meta">
-                <span className={`badge ${task.priority.toLowerCase()}`}>{task.priority}</span>
-                {task.dueDate && <small> due {task.dueDate}</small>}
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            className={`kanban-card ${isDragging ? "dragging" : ""}`}
+        >
+            <div className="kanban-card-top">
+                <span className={`badge ${task.priority.toLowerCase()}`}>
+                    {task.priority}
+                </span>
             </div>
-            {task.assigneeName && <small>👤 {task.assigneeName}</small>}
+
+            <h4>{task.title}</h4>
+
+            <div className="kanban-meta">
+                {task.dueDate && (
+                    <small>📅 {task.dueDate}</small>
+                )}
+
+                {task.assigneeName && (
+                    <div className="kanban-assignee">
+                        <span className="assignee-avatar">
+                            {task.assigneeName.charAt(0).toUpperCase()}
+                        </span>
+                        <small>{task.assigneeName}</small>
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -29,11 +53,38 @@ function TaskCard({ task }) {
 function Column({ status, tasks }) {
     const { setNodeRef, isOver } = useDroppable({ id: status });
 
+    const statusLabels = {
+        TODO: "To Do",
+        IN_PROGRESS: "In Progress",
+        REVIEW: "Review",
+        COMPLETED: "Completed",
+    };
+
     return (
-        <div ref={setNodeRef} className="kanban-column"
-             style={{ background: isOver ? "#e6f4ea" : "#f4f5f7" }}>
-            <h3>{status.replace("_", " ")} ({tasks.length})</h3>
-            {tasks.map((t) => <TaskCard key={t.id} task={t} />)}
+        <div
+            ref={setNodeRef}
+            className={`kanban-column ${isOver ? "column-over" : ""}`}
+        >
+            <div className="kanban-column-header">
+                <h3>
+                    <span className={`status-dot ${status.toLowerCase()}`} />
+                    {statusLabels[status]}
+                </h3>
+
+                <span className="task-count">{tasks.length}</span>
+            </div>
+
+            <div className="kanban-tasks">
+                {tasks.map((task) => (
+                    <TaskCard key={task.id} task={task} />
+                ))}
+
+                {tasks.length === 0 && (
+                    <div className="kanban-empty">
+                        No tasks yet
+                    </div>
+                )}
+            </div>
         </div>
     );
 }
@@ -41,15 +92,21 @@ function Column({ status, tasks }) {
 function KanbanBoard({ tasks, onMove }) {
     function handleDragEnd(event) {
         const { active, over } = event;
-        if (!over) return;                 // dropped outside every column
-        onMove(active.id, over.id);        // task id, new status
+
+        if (!over) return;
+
+        onMove(active.id, over.id);
     }
 
     return (
         <DndContext onDragEnd={handleDragEnd}>
             <div className="kanban-board">
-                {STATUSES.map((s) => (
-                    <Column key={s} status={s} tasks={tasks.filter((t) => t.status === s)} />
+                {STATUSES.map((status) => (
+                    <Column
+                        key={status}
+                        status={status}
+                        tasks={tasks.filter((task) => task.status === status)}
+                    />
                 ))}
             </div>
         </DndContext>

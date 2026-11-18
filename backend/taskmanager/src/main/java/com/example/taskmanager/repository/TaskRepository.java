@@ -19,5 +19,5 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Modifying
     @Query("UPDATE Task t SET t.assignee = null WHERE t.assignee.id = :userId")
-    void clearAssigneeForUser(@Param("userId") Long userId);
+    int unassignUser(@Param("userId") Long userId);
 }

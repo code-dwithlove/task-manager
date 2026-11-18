@@ -47,8 +47,18 @@
 }
 
 .account-chevron {
-    color: #94a3b8;
-    font-size: 16px;
+    width: 7px;
+    height: 7px;
+    margin: -3px 2px 0 0;
+    border-right: 2px solid #94a3b8;
+    border-bottom: 2px solid #94a3b8;
+    transform: rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.account-chevron.open {
+    margin-top: 3px;
+    transform: rotate(-135deg);
 }
 
 .account-dropdown {

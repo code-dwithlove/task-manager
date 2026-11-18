@@ -1,5 +1,4 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     getMyProfile,
@@ -13,6 +12,7 @@ function AccountMenu() {
     const [deleting, setDeleting] = useState(false);
     const [error, setError] = useState("");
 
+    const menuRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -28,15 +28,41 @@ function AccountMenu() {
         loadProfile();
     }, []);
 
-    function logout() {
+    // Close on outside tap/click and on Escape
+    useEffect(() => {
+        if (!open) return;
+
+        function onPointerDown(e) {
+            if (menuRef.current && !menuRef.current.contains(e.target)) {
+                setOpen(false);
+            }
+        }
+
+        function onKeyDown(e) {
+            if (e.key === "Escape") setOpen(false);
+        }
+
+        document.addEventListener("pointerdown", onPointerDown);
+        document.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.removeEventListener("pointerdown", onPointerDown);
+            document.removeEventListener("keydown", onKeyDown);
+        };
+    }, [open]);
+
+    function clearSession() {
         localStorage.removeItem("token");
         localStorage.removeItem("email");
+    }
+
+    function logout() {
+        clearSession();
         navigate("/login", { replace: true });
     }
 
     async function handleDeleteAccount() {
         const confirmation = window.prompt(
-            'This action is permanent. Type DELETE to confirm:'
+            "This action is permanent. Type DELETE to confirm:"
         );
 
         if (confirmation !== "DELETE") {
@@ -49,11 +75,8 @@ function AccountMenu() {
 
             await deleteMyAccount();
 
-            localStorage.removeItem("token");
-            localStorage.removeItem("email");
-
+            clearSession();
             navigate("/login", { replace: true });
-
         } catch (err) {
             setError(
                 err.response?.data?.message ||
@@ -63,6 +86,15 @@ function AccountMenu() {
         }
     }
 
+    // Hover only for a real mouse. Touch uses the tap (onClick) instead.
+    function handlePointerEnter(e) {
+        if (e.pointerType === "mouse") setOpen(true);
+    }
+
+    function handlePointerLeave(e) {
+        if (e.pointerType === "mouse") setOpen(false);
+    }
+
     const name = profile?.name || "My Account";
     const email = profile?.email || localStorage.getItem("email") || "";
     const initial = name.charAt(0).toUpperCase();
@@ -70,14 +102,16 @@ function AccountMenu() {
     return (
         <div
             className="account-menu"
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={() => setOpen(false)}
+            ref={menuRef}
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
         >
             <button
                 type="button"
                 className="account-trigger"
                 onClick={() => setOpen(prev => !prev)}
                 aria-expanded={open}
+                aria-haspopup="menu"
                 aria-label="Open account menu"
             >
                 <span className="account-avatar">
@@ -86,11 +120,11 @@ function AccountMenu() {
                 <span className="account-trigger-name">
                     {name}
                 </span>
-                <span className="account-chevron"></span>
+                <span className={`account-chevron ${open ? "open" : ""}`} />
             </button>
 
             {open && (
-                <div className="account-dropdown">
+                <div className="account-dropdown" role="menu">
 
                     <div className="account-profile">
                         <div className="account-avatar account-avatar-large">
@@ -122,6 +156,7 @@ function AccountMenu() {
 
                     <button
                         type="button"
+                        role="menuitem"
                         className="account-action logout-action"
                         onClick={logout}
                     >
@@ -131,6 +166,7 @@ function AccountMenu() {
 
                     <button
                         type="button"
+                        role="menuitem"
                         className="account-action delete-action"
                         onClick={handleDeleteAccount}
                         disabled={deleting}

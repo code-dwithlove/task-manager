@@ -1,6 +1,8 @@
 package com.example.taskmanager.service;
 
+import com.example.taskmanager.dto.UserProfileResponse;
 import com.example.taskmanager.model.Project;
+import com.example.taskmanager.model.User;
 import com.example.taskmanager.repository.ActivityRepository;
 import com.example.taskmanager.repository.CommentRepository;
 import com.example.taskmanager.repository.NotificationRepository;
@@ -46,5 +48,15 @@ public class UserService {
 
         // 3. Finally the user
         userRepository.deleteById(userId);
+    }
+
+    public UserProfileResponse getProfile() {
+        User user = currentUserService.get();
+        return new UserProfileResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getCreatedAt()
+        );
     }
 }

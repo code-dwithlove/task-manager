@@ -1,5 +1,9 @@
 # Task Manager
 
+**Live demo:** https://task-manager-xiut.onrender.com
+
+> Hosted on free tiers (Render + Neon). If the first load is slow, the server is waking up.
+
 A full-stack task and project management app with a Kanban board, team members and roles, comments, an activity feed and notifications. Built as a first full-stack project with Spring Boot, React and PostgreSQL, and run with Docker.
 
 ![CI](https://github.com/code-dwithlove/task-manager/actions/workflows/ci.yml/badge.svg)

@@ -1,18 +1,26 @@
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { register } from "../api/authApi";
+import {register, wakeServer} from "../api/authApi";
 import "../css/Login.css";
 
 function Register() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
     const navigate = useNavigate();
 
+    useEffect(() => {
+        wakeServer();
+    }, []);
+
+
     async function handleSubmit(e) {
         e.preventDefault();
+        setError("");
+        setLoading(true);
 
         try {
             const res = await register(name, email, password);
@@ -27,6 +35,7 @@ function Register() {
                 err.response?.data?.message ||
                 "Registration failed"
             );
+            setLoading(false);
         }
     }
 
@@ -136,10 +145,16 @@ function Register() {
                             />
                         </div>
 
-                        <button className="auth-submit" type="submit">
-                            Create account
-                            <span>→</span>
+                        <button className="auth-submit" type="submit" disabled={loading}>
+                            {loading ? "Getting You In..." : "Create Account"}
+                            {!loading && <span>→</span>}
                         </button>
+
+                        {loading && (
+                            <p className="auth-hint">
+                                The server may be waking up. This can take up to a minute the first time.
+                            </p>
+                        )}
                     </form>
 
                     <div className="auth-divider">

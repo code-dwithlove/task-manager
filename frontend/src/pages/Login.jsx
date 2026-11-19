@@ -1,17 +1,24 @@
 
-import { useState } from "react";
+import {useEffect, useState} from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login } from "../api/authApi";
+import {login, wakeServer} from "../api/authApi";
 import "../css/Login.css";
 
 function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        wakeServer();
+    }, []);
 
     async function handleSubmit(e) {
         e.preventDefault();
+        setError("");
+        setLoading(true);
 
         try {
             const res = await login(email, password);
@@ -20,6 +27,7 @@ function Login() {
             navigate("/");
         } catch (err) {
             setError(err.response?.data?.error || "Login failed");
+            setLoading(false);
         }
     }
 
@@ -96,10 +104,16 @@ function Login() {
                             />
                         </div>
 
-                        <button type="submit" className="auth-submit">
-                            Log in
-                            <span>→</span>
+                        <button type="submit" className="auth-submit" disabled={loading}>
+                            {loading ? "Logging in..." : "Log in"}
+                            {!loading && <span>→</span>}
                         </button>
+
+                        {loading && (
+                            <p className="auth-hint">
+                                The server may be waking up. This can take up to a minute the first time.
+                            </p>
+                        )}
 
                     </form>
 

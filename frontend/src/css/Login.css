@@ -189,6 +189,18 @@
     font-size: 18px;
 }
 
+.auth-hint {
+    margin: 12px 0 0;
+    color: #64748b;
+    font-size: 12px;
+    text-align: center;
+}
+
+.auth-submit:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
 .auth-divider {
     display: flex;
     align-items: center;
